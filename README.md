@@ -100,8 +100,6 @@ custom-report-generator/
 | Group 4 | Scheduling & Automation | `backend/scheduler/` |
 | Group 5 | Documentation & Testing | `docs/user_guide.md`, `docs/report_specifications.md`, `tests/` |
 
-See [Detailed Group Breakdown](#detailed-group-breakdown) below for exactly what each group should build.
-
 ---
 
 ## Branch & PR Workflow
