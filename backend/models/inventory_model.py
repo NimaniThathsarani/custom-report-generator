@@ -69,7 +69,7 @@ def get_inventory_data(filters: dict | None = None) -> pd.DataFrame:
 
     conn = get_connection()
     try:
-        df = pd.read_sql(sql, conn, params=params)
+        df = pd.read_sql(sql, conn, params=tuple(params))
     finally:
         conn.close()
 
