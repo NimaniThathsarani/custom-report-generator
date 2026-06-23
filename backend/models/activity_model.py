@@ -78,6 +78,8 @@ def get_activity_data(filters: dict | None = None) -> pd.DataFrame:
         conn.close()
 
     df["login_date"] = pd.to_datetime(df["login_date"])
+    df["login_time"] = pd.to_datetime(pd.to_datetime(
+        '2000-01-01') + pd.to_timedelta(df["login_time"])).dt.strftime("%H:%M:%S")
     return df
 
 
