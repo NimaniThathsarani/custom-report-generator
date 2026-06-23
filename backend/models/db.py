@@ -1,7 +1,7 @@
 """
 backend/models/db.py
 ====================
-MySQL connection pool using mysql-connector-python.
+MySQL connection pooling using SQLAlchemy (mysqlclient/mysqlconnector).
 All query modules import `get_connection()` from here.
 
 Environment variables (set in .env or system):
@@ -9,45 +9,59 @@ Environment variables (set in .env or system):
     DB_PORT     – default: 3306
     DB_USER     – default: root
     DB_PASSWORD – default: (empty)
-    DB_NAME     – default: custom_report_generator
+    DB_NAME     – default: report_generator
 """
 
 import os
-import mysql.connector
-from mysql.connector import pooling
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, Engine
+from sqlalchemy.engine import Connection
 
-_pool: pooling.MySQLConnectionPool | None = None
+load_dotenv()
+
+# Global engine instance acting as our connection pool
+_engine: Engine | None = None
 
 
-def _pool_config() -> dict:
-    return {
-        "pool_name":    "report_pool",
-        "pool_size":    10,
-        "host":         os.getenv("DB_HOST",     "localhost"),
-        "port":         int(os.getenv("DB_PORT", "3306")),
-        "user":         os.getenv("DB_USER",     "root"),
-        "password":     os.getenv("DB_PASSWORD", ""),
-        "database":     os.getenv("DB_NAME",     "custom_report_generator"),
-        "charset":      "utf8mb4",
-        "use_unicode":  True,
-        "autocommit":   True,
-    }
+def _get_db_url() -> str:
+    """Constructs the standard SQLAlchemy connection URI string."""
+    host = os.getenv("DB_HOST", "localhost")
+    port = os.getenv("DB_PORT", "3306")
+    user = os.getenv("DB_USER", "root")
+    password = os.getenv("DB_PASSWORD", "")
+    database = os.getenv("DB_NAME", "report_generator")
+
+    # Using mysql+mysqlconnector to match your current underlying package
+    return f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"
 
 
 def init_pool() -> None:
     """Call once at application startup (app.py)."""
-    global _pool
-    if _pool is None:
-        _pool = pooling.MySQLConnectionPool(**_pool_config())
+    global _engine
+    if _engine is None:
+        db_url = _get_db_url()
+
+        # create_engine handles pooling automatically under the hood
+        _engine = create_engine(
+            db_url,
+            pool_size=10,          # Equivalent to your original pool_size
+            max_overflow=5,        # Maximum extra connections allowed above pool_size
+            pool_pre_ping=True,    # Liveliness check: reconnects automatically if dropped
+            isolation_level="AUTOCOMMIT"  # Matches your original autocommit=True setting
+        )
 
 
-def get_connection() -> mysql.connector.MySQLConnection:
+def get_connection() -> Connection:
     """
     Return a connection from the pool.
     Caller is responsible for closing it (use as context manager or
     call .close() in a finally block).
+
+    Returns a SQLAlchemy Connection object compatible with pandas.read_sql.
     """
-    global _pool
-    if _pool is None:
+    global _engine
+    if _engine is None:
         init_pool()
-    return _pool.get_connection()
+
+    # Returns a connection from the pool boundary
+    return _engine.connect()
