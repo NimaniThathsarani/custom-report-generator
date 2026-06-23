@@ -44,11 +44,10 @@ def init_pool() -> None:
         # create_engine handles pooling automatically under the hood
         _engine = create_engine(
             db_url,
-            pool_size=10,          # Equivalent to your original pool_size
-            max_overflow=5,        # Maximum extra connections allowed above pool_size
-            pool_pre_ping=True,    # Liveliness check: reconnects automatically if dropped
-            isolation_level="AUTOCOMMIT"  # Matches your original autocommit=True setting
-        )
+            pool_size=10,
+            max_overflow=5,
+            pool_pre_ping=True
+        ).execution_options(autocommit=True)
 
 
 def get_connection() -> Connection:
