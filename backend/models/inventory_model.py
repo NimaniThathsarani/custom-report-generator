@@ -93,7 +93,7 @@ def get_inventory_summary(filters: dict | None = None) -> dict:
         "low_stock_count":      int,
         "low_stock_items":      pd.DataFrame,  # products at/below reorder level
         "by_category":          pd.DataFrame,  # category, total_qty, total_value
-        "by_warehouse":         pd.DataFrame,  # warehouse, total_qty, total_value
+        "by_warehouse_location":         pd.DataFrame,  # warehouse, total_qty, total_value
         "by_status":            pd.DataFrame,  # stock_status, count
     }
     """
@@ -109,7 +109,7 @@ def get_inventory_summary(filters: dict | None = None) -> dict:
             "low_stock_count":    0,
             "low_stock_items":    empty,
             "by_category":        empty,
-            "by_warehouse":       empty,
+            "by_warehouse_location":       empty,
             "by_status":          empty,
         }
 
@@ -123,8 +123,8 @@ def get_inventory_summary(filters: dict | None = None) -> dict:
         .sort_values("total_value", ascending=False)
     )
 
-    by_warehouse = (
-        df.groupby("warehouse_name", as_index=False)
+    by_warehouse_location = (
+        df.groupby("warehouse_location", as_index=False)
         .agg(total_units=("current_stock", "sum"),
              total_value=("stock_value", "sum"),
              product_count=("product_id", "nunique"))
@@ -144,7 +144,7 @@ def get_inventory_summary(filters: dict | None = None) -> dict:
         "low_stock_count":    int((df["stock_status"] == "Low Stock").sum()),
         "low_stock_items":    low_stock,
         "by_category":        by_category,
-        "by_warehouse":       by_warehouse,
+        "by_warehouse_location":       by_warehouse_location,
         "by_status":          by_status,
     }
 
