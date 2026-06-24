@@ -161,4 +161,4 @@ def get_available_filters() -> dict:
     finally:
         conn.close()
 
-    return {"start_date": "All data on or after the start date", "end_date": "All data up to the end date", "categories": categories, "regions": regions}
+    return {"start_date": [], "end_date": [], "categories": categories, "regions": regions}
