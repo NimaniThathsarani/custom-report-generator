@@ -8,16 +8,16 @@ Instead of manually pulling data and building a report every time someone asks f
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | HTML / CSS / JavaScript |
-| Backend | Flask (Python) |
-| Database | MySQL |
-| Data Processing | Pandas |
-| Excel Report Output | OpenPyXL |
-| PDF Report Output | ReportLab |
-| Scheduling (Recurring Reports) | APScheduler |
-| Version Control | GitHub |
+| Layer                          | Technology              |
+| ------------------------------ | ----------------------- |
+| Frontend                       | HTML / CSS / JavaScript |
+| Backend                        | Flask (Python)          |
+| Database                       | MySQL                   |
+| Data Processing                | Pandas                  |
+| Excel Report Output            | OpenPyXL                |
+| PDF Report Output              | ReportLab               |
+| Scheduling (Recurring Reports) | APScheduler             |
+| Version Control                | GitHub                  |
 
 ---
 
@@ -26,7 +26,7 @@ Instead of manually pulling data and building a report every time someone asks f
 - Multiple report types with adjustable filters/parameters (date range, category, region, etc.)
 - Simple, non-technical interface for selecting a report and generating it
 - Reports exportable as Excel and PDF
-- Recurring/scheduled report generation 
+- Recurring/scheduled report generation
 - Full user and technical documentation
 
 ---
@@ -49,7 +49,8 @@ custom-report-generator/
 │   ├── css/
 │   └── js/
 ├── database/
-│   └── schema.sql              # Table definitions + mock/sample data
+│   ├── schema.sql              # Table definitions
+│   └── seed_data.sql           # mock/sample data seeder
 ├── docs/
 │   ├── requirements.md         # Report types, fields, filters
 │   ├── report_specifications.md  # Technical: what each report pulls
@@ -62,28 +63,32 @@ custom-report-generator/
 ## Setup Instructions
 
 1. Clone the repo:
-   ```
+   ```bash
    git clone https://github.com/<org>/custom-report-generator.git
    cd custom-report-generator
    ```
 2. Create a virtual environment and install dependencies:
-   ```
+   ```bash
    python -m venv venv
    source venv/bin/activate   # Windows: venv\Scripts\activate
    pip install -r requirements.txt
    ```
 3. Set up MySQL:
-   - Create a database named `report_generator`
-   - Run `database/schema.sql` to create tables and load mock data
-4. Add a `.env` file (not committed) with your DB credentials:
+   - Add mysql bin/ into system variables from XAMPP or MySQL Server
+   ```bash
+   mysql -u root -p < database/schema.sql
+   mysql -u root -p report_generator < database/seed_data.sql
    ```
+4. Add a `.env` file (not committed) with your DB credentials:
+   ```bash
    DB_HOST=localhost
+   DB_PORT=3306
    DB_USER=root
    DB_PASSWORD=yourpassword
    DB_NAME=report_generator
    ```
 5. Run the Flask app:
-   ```
+   ```bash
    python backend/app.py
    ```
 6. Open `frontend/index.html` in your browser (or serve it via Flask's static folder).
@@ -92,13 +97,13 @@ custom-report-generator/
 
 ## Team & Group Ownership
 
-| Group | Focus Area | Folder(s) Owned |
-|---|---|---|
-| Group 1 | Requirements & Report Design | `docs/requirements.md` |
+| Group   | Focus Area                    | Folder(s) Owned                                                              |
+| ------- | ----------------------------- | ---------------------------------------------------------------------------- |
+| Group 1 | Requirements & Report Design  | `docs/requirements.md`                                                       |
 | Group 2 | Report Templates & Data Layer | `database/`, `backend/models/`, `backend/templates_engine/`,`backend/app.py` |
-| Group 3 | User Interface | `frontend/` |
-| Group 4 | Scheduling & Automation | `backend/scheduler/` |
-| Group 5 | Documentation & Testing | `docs/user_guide.md`, `docs/report_specifications.md`, `tests/` |
+| Group 3 | User Interface                | `frontend/`                                                                  |
+| Group 4 | Scheduling & Automation       | `backend/scheduler/`                                                         |
+| Group 5 | Documentation & Testing       | `docs/user_guide.md`, `docs/report_specifications.md`, `tests/`              |
 
 ---
 
