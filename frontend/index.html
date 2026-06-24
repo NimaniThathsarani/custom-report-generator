@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Hub — Custom Report Generator</title>
+  <meta name="description" content="Generate and schedule Sales, User Activity, and Inventory reports in PDF or Excel format." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap" rel="stylesheet" />
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+<div id="app">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TOP NAV
+       ══════════════════════════════════════════════════════════════ -->
+  <nav class="topnav" aria-label="Application navigation">
+    <div class="nav-brand">
+      <div class="nav-logobox" aria-hidden="true">📊</div>
+      <div>
+        <div class="nav-title">Analytics Hub</div>
+        <div class="nav-sub">Custom Report Generator</div>
+      </div>
+    </div>
+
+    <!-- Three-step progress pills (updated by JS) -->
+    <div class="nav-steps" aria-label="Progress steps">
+      <div class="nav-step is-active" id="np1" aria-label="Step 1: Select">
+        <div class="nav-step-dot"></div>Select
+      </div>
+      <div class="nav-sep" aria-hidden="true"></div>
+      <div class="nav-step" id="np2" aria-label="Step 2: Configure">
+        <div class="nav-step-dot"></div>Configure
+      </div>
+      <div class="nav-sep" aria-hidden="true"></div>
+      <div class="nav-step" id="np3" aria-label="Step 3: Results">
+        <div class="nav-step-dot"></div>Results
+      </div>
+    </div>
+
+    <!-- Backend connection status -->
+    <div class="nav-status" aria-live="polite">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-lbl">Checking…</span>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LOADING OVERLAY (full-screen, shown during API calls)
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <div class="loading-text" id="loading-text">Generating your report…</div>
+    <div class="loading-sub"  id="loading-sub">This may take a few seconds</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TOAST CONTAINER
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="toast-container" id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       MAIN STAGE
+       ══════════════════════════════════════════════════════════════ -->
+  <main class="stage">
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 1 — SELECT REPORT TYPE
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen is-active" id="s1" aria-label="Select report type">
+
+      <div class="pg-head">
+        <div class="pg-eye">Step 1 of 3</div>
+        <h1 class="pg-h1">What would you like to report on?</h1>
+        <p class="pg-p">Choose a report type below. You can generate it instantly or set up a recurring schedule.</p>
+      </div>
+
+      <div class="card">
+
+        <!-- Three report-type cards -->
+        <div class="rtype-grid" role="radiogroup" aria-label="Report type selection">
+
+          <button class="rtype-card" id="rc-sales"
+            data-key="sales" data-lbl="Sales Report" data-icon="💰"
+            role="radio" aria-checked="false" aria-label="Sales Report — Revenue, orders and category performance"
+            onclick="pickReport(this)">
+            <div class="rtype-tick" aria-hidden="true">✓</div>
+            <span class="rtype-icon" aria-hidden="true">💰</span>
+            <div class="rtype-name">Sales Report</div>
+            <div class="rtype-desc">Revenue, orders and category performance across regions.</div>
+          </button>
+
+          <button class="rtype-card" id="rc-user_activity"
+            data-key="user_activity" data-lbl="User Activity Report" data-icon="👤"
+            role="radio" aria-checked="false" aria-label="User Activity Report — Login events and user engagement"
+            onclick="pickReport(this)">
+            <div class="rtype-tick" aria-hidden="true">✓</div>
+            <span class="rtype-icon" aria-hidden="true">👤</span>
+            <div class="rtype-name">User Activity Report</div>
+            <div class="rtype-desc">Login events, exports and engagement by user or team.</div>
+          </button>
+
+          <button class="rtype-card" id="rc-inventory"
+            data-key="inventory" data-lbl="Inventory Report" data-icon="📦"
+            role="radio" aria-checked="false" aria-label="Inventory Report — Stock levels and warehouse snapshot"
+            onclick="pickReport(this)">
+            <div class="rtype-tick" aria-hidden="true">✓</div>
+            <span class="rtype-icon" aria-hidden="true">📦</span>
+            <div class="rtype-name">Inventory Report</div>
+            <div class="rtype-desc">Stock levels, categories and warehouse snapshot.</div>
+          </button>
+
+        </div>
+
+        <!-- Selection display -->
+        <div class="sel-display" id="sel-display" aria-live="polite">
+          <div>
+            <div class="sel-lbl">Selected Report</div>
+            <div class="sel-val" id="sel-val">No report selected yet</div>
+          </div>
+          <div class="sel-arr" aria-hidden="true">▾</div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+          <button class="btn btn-grad" id="btn-instant" disabled
+            onclick="gotoFilters()" aria-label="Generate instant report">
+            ⚡ Generate Instant Report
+          </button>
+          <button class="btn btn-ghost" id="btn-sched" disabled
+            onclick="gotoSchedule()" aria-label="Schedule a recurring report">
+            📅 Schedule Recurring Report
+          </button>
+        </div>
+
+      </div><!-- /card -->
+    </section><!-- /s1 -->
+
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 2 — FILTERS & GENERATE
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen" id="s2" aria-label="Configure report filters">
+
+      <div class="pg-head">
+        <div class="pg-eye">Step 2 of 3</div>
+        <h1 class="pg-h1">Configure your filters</h1>
+        <p class="pg-p">Narrow down the data. Fields marked <span style="color:#dc2626;font-weight:700">*</span> are required.</p>
+      </div>
+
+      <div class="card">
+
+        <button class="back-lnk" onclick="goTo(1)" aria-label="Back to report selection">← Back</button>
+
+        <!-- Context chip (report type label) -->
+        <div class="ctx-chip" id="f-chip"><span id="f-chip-ico">📊</span><span id="f-chip-lbl">—</span></div>
+
+        <!-- Validation error banner -->
+        <div class="alert alert-err" id="f-err" role="alert" aria-live="assertive">
+          <span class="alert-ico" aria-hidden="true">⚠️</span>
+          <div>
+            <div class="alert-ttl">Check your inputs</div>
+            <div class="alert-body" id="f-err-body">Please fill in all required fields.</div>
+          </div>
+        </div>
+
+        <!-- ── SALES FILTERS ── -->
+        <div id="fg-sales" class="filter-panel" style="display:none">
+          <div class="sec-title">Sales Report Filters</div>
+          <p class="sec-sub">Select a date range to scope the report. Category and region are optional refinements.</p>
+
+          <div class="date-pair fg">
+            <div>
+              <label class="lbl" for="s-start">Start Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="s-start" aria-required="true" />
+            </div>
+            <div>
+              <label class="lbl" for="s-end">End Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="s-end" aria-required="true" />
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="s-cat">Category</label>
+            <div class="sel-wrap">
+              <select class="sel" id="s-cat" aria-label="Filter by category">
+                <option value="">— All categories —</option>
+                <option>Electronics</option>
+                <option>Clothing</option>
+                <option>Food &amp; Beverages</option>
+                <option>Stationery</option>
+                <option>Furniture</option>
+                <option>Health &amp; Beauty</option>
+                <option>Sports</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="s-region">Region</label>
+            <div class="sel-wrap">
+              <select class="sel" id="s-region" aria-label="Filter by region">
+                <option value="">— All regions —</option>
+                <option>Western Province</option>
+                <option>Central Province</option>
+                <option>Southern Province</option>
+                <option>Northern Province</option>
+                <option>Eastern Province</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── USER ACTIVITY FILTERS ── -->
+        <div id="fg-user_activity" class="filter-panel" style="display:none">
+          <div class="sec-title">User Activity Report Filters</div>
+          <p class="sec-sub">Pick a date window. Optionally scope to a specific user or activity type.</p>
+
+          <div class="date-pair fg">
+            <div>
+              <label class="lbl" for="ua-start">Start Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="ua-start" aria-required="true" />
+            </div>
+            <div>
+              <label class="lbl" for="ua-end">End Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="ua-end" aria-required="true" />
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="ua-user">User Name</label>
+            <input class="inp" type="text" id="ua-user"
+              placeholder="e.g. ashan.perera, nimali.silva…" autocomplete="off" />
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="ua-type">Activity Type</label>
+            <div class="sel-wrap">
+              <select class="sel" id="ua-type" aria-label="Filter by activity type">
+                <option value="">— All activity types —</option>
+                <option>Login</option>
+                <option>Generate Report</option>
+                <option>Export PDF</option>
+                <option>Export Excel</option>
+                <option>View Report</option>
+                <option>Schedule Report</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── INVENTORY FILTERS ── -->
+        <div id="fg-inventory" class="filter-panel" style="display:none">
+          <div class="sec-title">Inventory Report Filters</div>
+          <p class="sec-sub">Optionally narrow by product category or warehouse location. No date range needed.</p>
+
+          <div class="fg">
+            <label class="lbl" for="inv-cat">Category</label>
+            <div class="sel-wrap">
+              <select class="sel" id="inv-cat" aria-label="Filter by category">
+                <option value="">— All categories —</option>
+                <option>Electronics</option>
+                <option>Clothing</option>
+                <option>Food &amp; Beverages</option>
+                <option>Stationery</option>
+                <option>Furniture</option>
+                <option>Health &amp; Beauty</option>
+                <option>Sports</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="inv-wh">Warehouse Location</label>
+            <div class="sel-wrap">
+              <select class="sel" id="inv-wh" aria-label="Filter by warehouse">
+                <option value="">— All warehouses —</option>
+                <option>Colombo Central WH</option>
+                <option>Kandy Regional WH</option>
+                <option>Galle Southern WH</option>
+                <option>Jaffna Northern WH</option>
+                <option>Batticaloa Eastern WH</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <button class="btn btn-grad btn-full" id="btn-gen"
+          onclick="handleGenerate()" aria-label="Generate report now">
+          ⚡ Generate Report Now
+        </button>
+
+      </div><!-- /card -->
+    </section><!-- /s2 -->
+
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 3 — SCHEDULE RECURRING REPORT
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen" id="s3" aria-label="Schedule recurring report">
+
+      <div class="pg-head">
+        <div class="pg-eye">Schedule</div>
+        <h1 class="pg-h1">Set up a recurring report</h1>
+        <p class="pg-p">Choose how often you want this report delivered and where it should be sent.</p>
+      </div>
+
+      <div class="card">
+
+        <button class="back-lnk" onclick="goTo(1)" aria-label="Back to report selection">← Back</button>
+
+        <div class="ctx-chip" id="sc-chip"><span id="sc-chip-ico">📊</span><span id="sc-chip-lbl">—</span></div>
+
+        <!-- Validation error -->
+        <div class="alert alert-err" id="sc-err" role="alert" aria-live="assertive">
+          <span class="alert-ico" aria-hidden="true">⚠️</span>
+          <div>
+            <div class="alert-ttl">Missing information</div>
+            <div class="alert-body" id="sc-err-body">Please fill in all required fields.</div>
+          </div>
+        </div>
+
+        <!-- Schedule form -->
+        <div id="sc-form">
+
+          <!-- Optional filters section (mirrors the generate screen) -->
+          <div class="sched-filters">
+            <div class="sched-filters-title">Optional Filters <span class="sched-optional">(applied each time the report runs)</span></div>
+
+            <!-- Sales filters for schedule -->
+            <div id="sched-fg-sales" style="display:none">
+              <div class="date-pair fg">
+                <div>
+                  <label class="lbl" for="sc-s-start">Start Date</label>
+                  <input class="inp" type="date" id="sc-s-start" />
+                </div>
+                <div>
+                  <label class="lbl" for="sc-s-end">End Date</label>
+                  <input class="inp" type="date" id="sc-s-end" />
+                </div>
+              </div>
+              <div class="fg">
+                <label class="lbl" for="sc-s-cat">Category</label>
+                <div class="sel-wrap">
+                  <select class="sel" id="sc-s-cat">
+                    <option value="">— All categories —</option>
+                    <option>Electronics</option>
+                    <option>Clothing</option>
+                    <option>Food &amp; Beverages</option>
+                    <option>Stationery</option>
+                    <option>Furniture</option>
+                    <option>Health &amp; Beauty</option>
+                    <option>Sports</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="lbl" for="sc-s-region">Region</label>
+                <div class="sel-wrap">
+                  <select class="sel" id="sc-s-region">
+                    <option value="">— All regions —</option>
+                    <option>Western Province</option>
+                    <option>Central Province</option>
+                    <option>Southern Province</option>
+                    <option>Northern Province</option>
+                    <option>Eastern Province</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- User Activity filters for schedule -->
+            <div id="sched-fg-user_activity" style="display:none">
+              <div class="date-pair fg">
+                <div>
+                  <label class="lbl" for="sc-ua-start">Start Date</label>
+                  <input class="inp" type="date" id="sc-ua-start" />
+                </div>
+                <div>
+                  <label class="lbl" for="sc-ua-end">End Date</label>
+                  <input class="inp" type="date" id="sc-ua-end" />
+                </div>
+              </div>
+              <div class="fg">
+                <label class="lbl" for="sc-ua-user">User Name</label>
+                <input class="inp" type="text" id="sc-ua-user" placeholder="e.g. ashan.perera…" autocomplete="off" />
+              </div>
+              <div class="fg">
+                <label class="lbl" for="sc-ua-type">Activity Type</label>
+                <div class="sel-wrap">
+                  <select class="sel" id="sc-ua-type">
+                    <option value="">— All activity types —</option>
+                    <option>Login</option>
+                    <option>Generate Report</option>
+                    <option>Export PDF</option>
+                    <option>Export Excel</option>
+                    <option>View Report</option>
+                    <option>Schedule Report</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inventory filters for schedule -->
+            <div id="sched-fg-inventory" style="display:none">
+              <div class="fg">
+                <label class="lbl" for="sc-inv-cat">Category</label>
+                <div class="sel-wrap">
+                  <select class="sel" id="sc-inv-cat">
+                    <option value="">— All categories —</option>
+                    <option>Electronics</option>
+                    <option>Clothing</option>
+                    <option>Food &amp; Beverages</option>
+                    <option>Stationery</option>
+                    <option>Furniture</option>
+                    <option>Health &amp; Beauty</option>
+                    <option>Sports</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="lbl" for="sc-inv-wh">Warehouse Location</label>
+                <div class="sel-wrap">
+                  <select class="sel" id="sc-inv-wh">
+                    <option value="">— All warehouses —</option>
+                    <option>Colombo Central WH</option>
+                    <option>Kandy Regional WH</option>
+                    <option>Galle Southern WH</option>
+                    <option>Jaffna Northern WH</option>
+                    <option>Batticaloa Eastern WH</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /sched-filters -->
+
+          <div class="sec-title">Delivery Settings</div>
+          <p class="sec-sub">Reports are generated automatically and emailed to the recipient you specify.</p>
+
+          <div class="fg">
+            <label class="lbl" for="sc-freq">Frequency<span class="req">*</span></label>
+            <div class="sel-wrap">
+              <select class="sel" id="sc-freq" aria-required="true">
+                <option value="">— Choose frequency —</option>
+                <option value="Daily">Daily</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="sc-fmt">Export Format<span class="req">*</span></label>
+            <div class="sel-wrap">
+              <select class="sel" id="sc-fmt" aria-required="true">
+                <option value="">— Choose format —</option>
+                <option value="pdf">PDF Document</option>
+                <option value="excel">Excel Spreadsheet</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="sc-email">Recipient Email<span class="req">*</span></label>
+            <input class="inp" type="email" id="sc-email"
+              placeholder="e.g. finance@company.lk"
+              aria-required="true" autocomplete="email" />
+          </div>
+
+          <div class="hr"></div>
+
+          <button class="btn btn-grad btn-full" id="btn-save-sched"
+            onclick="handleSaveSchedule()" aria-label="Save schedule">
+            💾 Save Schedule
+          </button>
+        </div><!-- /sc-form -->
+
+        <!-- Schedule saved confirmation (hidden until saved) -->
+        <div id="sc-done" class="sched-confirm" role="status">
+          <div class="alert alert-ok show">
+            <span class="alert-ico" aria-hidden="true">✅</span>
+            <div>
+              <div class="alert-ttl">Schedule saved!</div>
+              <div class="alert-body" id="sc-done-summary">Your report will be dispatched automatically.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:18px">
+            <div class="conf-row">
+              <span class="conf-k">Report</span>
+              <span class="conf-v" id="cd-report">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">Frequency</span>
+              <span class="conf-v" id="cd-freq">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">Format</span>
+              <span class="conf-v" id="cd-fmt">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">Recipient</span>
+              <span class="conf-v" id="cd-email">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">First Dispatch</span>
+              <span class="conf-v" id="cd-dispatch">—</span>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <button class="btn btn-ghost" onclick="goTo(1)" aria-label="Return to home">← Back to Home</button>
+            <button class="btn btn-ghost" onclick="gotoSchedule()" aria-label="Set up another schedule">📅 Schedule Another</button>
+          </div>
+        </div><!-- /sc-done -->
+
+      </div><!-- /card -->
+    </section><!-- /s3 -->
+
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 4 — DOWNLOAD / RESULT
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen" id="s4" aria-label="Report results and download">
+
+      <div class="pg-head">
+        <div class="pg-eye" id="r4-eye">Results</div>
+        <h1 class="pg-h1" id="r4-h1">Your report is ready</h1>
+        <p class="pg-p"  id="r4-p">Click a button below to download your report in your preferred format.</p>
+      </div>
+
+      <div class="card">
+
+        <!-- SUCCESS STATE -->
+        <div id="r4-ok" style="display:none">
+          <div class="result-wrap">
+            <div class="result-circle ok" aria-hidden="true">✅</div>
+            <div class="result-h">Report ready to download</div>
+            <p class="result-p">Both formats contain the same data set. Choose your preferred format below. You can download both.</p>
+
+            <div class="dl-row">
+              <button class="btn btn-dl-pdf" id="btn-dl-pdf"
+                onclick="triggerDownload('pdf')"
+                aria-label="Download report as PDF">
+                📄 Download PDF
+              </button>
+              <button class="btn btn-dl-xls" id="btn-dl-xls"
+                onclick="triggerDownload('excel')"
+                aria-label="Download report as Excel spreadsheet">
+                📊 Download Excel
+              </button>
+            </div>
+
+            <div class="result-meta">
+              <div class="meta-item">
+                <div class="meta-lbl">Report Type</div>
+                <div class="meta-val" id="r4-meta-type">—</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-lbl">Generated at</div>
+                <div class="meta-val" id="r4-meta-time">—</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-lbl">Formats available</div>
+                <div class="meta-val">PDF + Excel</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <button class="btn btn-ghost" onclick="gotoFiltersFromResult()" aria-label="Adjust filters and regenerate">
+              🔧 Adjust Filters
+            </button>
+            <button class="btn btn-ghost" onclick="goTo(1)" aria-label="Start a new report">
+              ← New Report
+            </button>
+          </div>
+        </div>
+
+        <!-- FAILURE STATE -->
+        <div id="r4-err" style="display:none">
+          <div class="result-wrap">
+            <div class="result-circle err" aria-hidden="true">❌</div>
+            <div class="result-h">Report generation failed</div>
+            <p class="result-p">We couldn't reach the report server. Make sure the Flask backend is running at <code>http://127.0.0.1:5000</code>, then adjust your filters and try again.</p>
+
+            <div class="alert alert-err show" id="r4-err-detail" style="text-align:left;max-width:480px;margin:0 auto">
+              <span class="alert-ico" aria-hidden="true">⚠️</span>
+              <div>
+                <div class="alert-ttl">Error details</div>
+                <div class="alert-body" id="r4-err-msg">The server could not be reached.</div>
+              </div>
+            </div>
+
+            <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:420px;margin-left:auto;margin-right:auto">
+              <button class="btn btn-danger" onclick="gotoFiltersFromResult()"
+                aria-label="Adjust filters and try again">
+                🔄 Adjust &amp; Retry
+              </button>
+              <button class="btn btn-ghost" onclick="goTo(1)"
+                aria-label="Return to report selection">
+                ← New Report
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /card -->
+    </section><!-- /s4 -->
+
+  </main><!-- /stage -->
+</div><!-- /#app -->
+
+<!-- Main JavaScript -->
+<script src="js/app.js"></script>
+</body>
+</html>
