@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Hub — Custom Report Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap" rel="stylesheet" />
+
+  <style>
+
+    :root {
+      /* Background: deep corporate navy → dark teal */
+      --bg-a:          #0b1f3a;
+      --bg-b:          #0d2d24;
+      --sidebar-bg:    rgba(255,255,255,0.04);
+      --sidebar-border:rgba(255,255,255,0.08);
+
+      /* Brand accents */
+      --blue:          #2a5298;
+      --blue-lt:       #4b7fdb;
+      --teal:          #1a8a6e;
+      --teal-lt:       #22b98e;
+      --gradient:      linear-gradient(135deg, #2a5298 0%, #1a8a6e 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(42,82,152,.18) 0%, rgba(26,138,110,.14) 100%);
+
+      /* Surface */
+      --card:          #ffffff;
+      --card-shadow:   0 4px 6px -1px rgba(0,0,0,.18), 0 12px 40px -4px rgba(0,0,0,.28);
+      --card-radius:   18px;
+      --inner-radius:  12px;
+
+      /* Typography */
+      --text-head:     #0f172a;
+      --text-body:     #374151;
+      --text-muted:    #64748b;
+      --text-faint:    #94a3b8;
+      --text-white:    #ffffff;
+      --text-white70:  rgba(255,255,255,.70);
+      --text-white40:  rgba(255,255,255,.40);
+
+      /* Form */
+      --border:        #d1d9e6;
+      --border-focus:  #2a5298;
+      --input-bg:      #f8fafd;
+      --input-radius:  10px;
+
+      /* Status */
+      --success:       #059669;
+      --success-bg:    #ecfdf5;
+      --success-ring:  #6ee7b7;
+      --error:         #dc2626;
+      --error-bg:      #fef2f2;
+      --error-ring:    #fca5a5;
+      --warn:          #d97706;
+
+      /* Motion */
+      --t-fast:  0.14s ease;
+      --t-med:   0.24s ease;
+      --t-slow:  0.36s ease;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       RESET
+       ═══════════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(160deg, var(--bg-a) 0%, #112641 45%, var(--bg-b) 100%);
+      min-height: 100vh;
+      color: var(--text-head);
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow orbs — the signature atmospheric element */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 700px 500px at 15% 10%, rgba(42,82,152,.20) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 400px at 85% 85%, rgba(26,138,110,.16) 0%, transparent 70%),
+        radial-gradient(ellipse 350px 350px at 75% 15%, rgba(74,127,219,.10) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       LAYOUT SHELL
+       ═══════════════════════════════════════════════════════════════ */
+    #app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    /* ── TOP NAV ── */
+    .topnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 62px;
+      background: rgba(11,31,58,.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .nav-logobox {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      box-shadow: 0 2px 10px rgba(42,82,152,.45);
+    }
+
+    .nav-title  { font-size: .95rem; font-weight: 700; color: var(--text-white); letter-spacing: -.3px; }
+    .nav-sub    { font-size: .68rem; font-weight: 500; color: var(--text-white40); letter-spacing: .8px; text-transform: uppercase; }
+
+    /* Progress track in nav */
+    .nav-steps {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-step {
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: .75rem; font-weight: 600;
+      color: var(--text-white40);
+      border: 1px solid transparent;
+      transition: all var(--t-med);
+    }
+    .nav-step-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-white40);
+      transition: background var(--t-med);
+    }
+    .nav-step.is-active {
+      color: var(--text-white);
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.15);
+    }
+    .nav-step.is-active .nav-step-dot { background: var(--teal-lt); }
+
+    .nav-sep { width: 20px; height: 1px; background: rgba(255,255,255,.15); }
+
+    /* ── MAIN STAGE ── */
+    .stage {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 52px 24px 80px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SCREEN SYSTEM
+       ═══════════════════════════════════════════════════════════════ */
+    .screen { display: none; width: 100%; max-width: 780px; flex-direction: column; align-items: center; }
+    .screen.is-active { display: flex; animation: fadeUp .3s var(--t-med) both; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Page headline block ── */
+    .pg-head { text-align: center; margin-bottom: 38px; max-width: 520px; }
+    .pg-eye  { font-size: .7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--teal-lt); margin-bottom: 10px; }
+    .pg-h1   { font-size: 2rem; font-weight: 800; color: var(--text-white); letter-spacing: -.6px; line-height: 1.2; margin-bottom: 11px; }
+    .pg-p    { font-size: .9rem; color: var(--text-white70); line-height: 1.65; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       WHITE CARD SURFACE
+       ═══════════════════════════════════════════════════════════════ */
+    .card {
+      width: 100%;
+      background: var(--card);
+      border-radius: var(--card-radius);
+      box-shadow: var(--card-shadow);
+      padding: 38px 42px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SCREEN 1 — REPORT TYPE CARDS
+       ═══════════════════════════════════════════════════════════════ */
+    .rtype-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 26px;
+    }
+
+    .rtype-card {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 30px 18px 26px;
+      border: 2px solid #e2eaf5;
+      border-radius: 14px;
+      background: #f9fbff;
+      cursor: pointer;
+      text-align: center;
+      user-select: none;
+      transition: border-color var(--t-med), background var(--t-med), transform var(--t-med), box-shadow var(--t-med);
+      overflow: hidden;
+    }
+
+    /* Accent bar at top */
+    .rtype-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--gradient);
+      opacity: 0;
+      transition: opacity var(--t-med);
+    }
+
+    .rtype-card:hover {
+      border-color: #a8c4ef;
+      background: #f0f6ff;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(42,82,152,.12);
+    }
+    .rtype-card:hover::before { opacity: .5; }
+
+    .rtype-card.is-selected {
+      border-color: var(--blue);
+      background: #edf3ff;
+      transform: translateY(-4px);
+      box-shadow: 0 0 0 4px rgba(42,82,152,.13), 0 8px 28px rgba(42,82,152,.15);
+    }
+    .rtype-card.is-selected::before { opacity: 1; }
+
+    /* Tick badge */
+    .rtype-tick {
+      position: absolute; top: 11px; right: 11px;
+      width: 21px; height: 21px; border-radius: 50%;
+      background: var(--blue);
+      color: #fff; font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(.3);
+      transition: opacity var(--t-med), transform var(--t-med);
+    }
+    .rtype-card.is-selected .rtype-tick { opacity: 1; transform: scale(1); }
+
+    .rtype-icon { font-size: 2.3rem; margin-bottom: 13px; display: block; }
+    .rtype-name { font-size: .94rem; font-weight: 700; color: var(--text-head); margin-bottom: 5px; letter-spacing: -.2px; }
+    .rtype-desc { font-size: .76rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* Selection display pill */
+    .sel-display {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 17px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--input-radius);
+      background: var(--input-bg);
+      margin-bottom: 26px;
+      transition: border-color var(--t-fast), background var(--t-fast);
+    }
+    .sel-display.has-val {
+      border-color: var(--blue);
+      background: #f0f5ff;
+    }
+    .sel-lbl  { font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-faint); margin-bottom: 2px; }
+    .sel-val  { font-size: .93rem; font-weight: 600; color: var(--text-faint); transition: color var(--t-fast); }
+    .sel-display.has-val .sel-val { color: var(--blue); }
+    .sel-arr  { color: var(--text-faint); font-size: .85rem; }
+
+    /* Action row */
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       BUTTONS
+       ═══════════════════════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 22px;
+      border: none; border-radius: 10px;
+      font-family: inherit; font-size: .9rem; font-weight: 600;
+      cursor: pointer; transition: all var(--t-med);
+      white-space: nowrap; letter-spacing: -.1px;
+    }
+    .btn:focus-visible { outline: 3px solid var(--teal-lt); outline-offset: 2px; }
+
+    .btn-grad {
+      background: var(--gradient);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(42,82,152,.3);
+    }
+    .btn-grad:hover:not(:disabled) {
+      filter: brightness(1.08);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(42,82,152,.38);
+    }
+    .btn-grad:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-ghost {
+      background: #f1f5f9;
+      color: var(--text-body);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover:not(:disabled) { background: #e6ecf5; border-color: #b0bdd0; }
+
+    .btn-success {
+      background: linear-gradient(135deg,#059669,#047857);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(5,150,105,.28);
+    }
+    .btn-success:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-2px); }
+
+    .btn-warn {
+      background: linear-gradient(135deg,#dc2626,#b91c1c);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(220,38,38,.25);
+    }
+    .btn-warn:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-2px); }
+
+    .btn-dl-pdf {
+      background: linear-gradient(135deg,#c0392b,#e74c3c);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(192,57,43,.28);
+    }
+    .btn-dl-pdf:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-2px); }
+
+    .btn-dl-xls {
+      background: linear-gradient(135deg,#1a7a3c,#27ae60);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(26,122,60,.28);
+    }
+    .btn-dl-xls:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-2px); }
+
+    .btn:disabled { opacity: .38; cursor: not-allowed; transform: none !important; box-shadow: none !important; filter: none !important; }
+    .btn-full { width: 100%; }
+
+    /* Spinner inside button */
+    .btn-spin {
+      display: inline-block;
+      width: 15px; height: 15px;
+      border: 2.5px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══════════════════════════════════════════════════════════════
+       BACK LINK
+       ═══════════════════════════════════════════════════════════════ */
+    .back-lnk {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: .84rem; font-weight: 600; color: var(--text-muted);
+      background: none; border: none; cursor: pointer;
+      padding: 2px 0; margin-bottom: 24px;
+      transition: color var(--t-fast);
+    }
+    .back-lnk:hover { color: var(--blue); }
+    .back-lnk:focus-visible { outline: 2px solid var(--teal-lt); outline-offset: 2px; border-radius: 4px; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       CONTEXT CHIP
+       ═══════════════════════════════════════════════════════════════ */
+    .ctx-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: #eef4ff; border: 1.5px solid #c2d5ff;
+      font-size: .76rem; font-weight: 700; color: var(--blue);
+      margin-bottom: 22px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       CARD SECTION HEADERS
+       ═══════════════════════════════════════════════════════════════ */
+    .sec-title { font-size: 1.08rem; font-weight: 700; color: var(--text-head); letter-spacing: -.25px; margin-bottom: 4px; }
+    .sec-sub   { font-size: .82rem; color: var(--text-muted); margin-bottom: 26px; line-height: 1.55; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FORM ELEMENTS
+       ═══════════════════════════════════════════════════════════════ */
+    .fg { margin-bottom: 18px; }
+    .fg:last-of-type { margin-bottom: 0; }
+
+    label.lbl {
+      display: block;
+      font-size: .8rem; font-weight: 600; color: #334155;
+      margin-bottom: 6px; letter-spacing: -.1px;
+    }
+    .req { color: var(--error); margin-left: 2px; }
+
+    .inp, .sel {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--input-radius);
+      font-family: inherit; font-size: .9rem;
+      color: var(--text-head);
+      background: var(--input-bg);
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+      appearance: none; -webkit-appearance: none;
+    }
+    .inp::placeholder { color: #b8c4d4; }
+    .inp:focus, .sel:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(42,82,152,.11);
+    }
+
+    /* Custom select arrow */
+    .sel-wrap { position: relative; }
+    .sel-wrap::after {
+      content: '▾'; position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%); color: var(--text-muted);
+      pointer-events: none; font-size: .85rem;
+    }
+
+    /* Date pair */
+    .date-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+    /* Divider */
+    .hr { height: 1px; background: #e8eef5; margin: 22px 0; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       ALERT BANNERS
+       ═══════════════════════════════════════════════════════════════ */
+    .alert {
+      display: none;
+      align-items: flex-start; gap: 11px;
+      padding: 13px 15px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-size: .85rem; line-height: 1.5; font-weight: 500;
+    }
+    .alert.show { display: flex; }
+    .alert-err { background: var(--error-bg); border: 1.5px solid var(--error-ring); color: #991b1b; }
+    .alert-ok  { background: var(--success-bg); border: 1.5px solid var(--success-ring); color: #065f46; }
+    .alert-ico { font-size: 1.05rem; flex-shrink: 0; margin-top: 1px; }
+    .alert-ttl { font-weight: 700; margin-bottom: 2px; }
+    .alert-body { font-weight: 400; opacity: .88; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SCREEN 4 — RESULT
+       ═══════════════════════════════════════════════════════════════ */
+    .result-wrap { text-align: center; padding: 6px 0; }
+
+    .result-circle {
+      width: 78px; height: 78px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem; margin: 0 auto 22px;
+    }
+    .result-circle.ok  { background: var(--success-bg); border: 3px solid var(--success-ring); }
+    .result-circle.err { background: var(--error-bg);   border: 3px solid var(--error-ring); }
+
+    .result-h  { font-size: 1.35rem; font-weight: 800; color: var(--text-head); letter-spacing: -.35px; margin-bottom: 7px; }
+    .result-p  { font-size: .88rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 28px; max-width: 400px; margin-left: auto; margin-right: auto; }
+
+    .dl-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; max-width: 420px; margin: 0 auto; }
+
+    .result-meta {
+      display: flex; align-items: center; justify-content: center; gap: 24px;
+      margin-top: 26px; padding-top: 20px;
+      border-top: 1px solid #e8eef5;
+    }
+    .meta-lbl { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-faint); margin-bottom: 2px; }
+    .meta-val { font-size: .85rem; font-weight: 600; color: var(--text-muted); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SCREEN 3 — SCHEDULE CONFIRM ROWS
+       ═══════════════════════════════════════════════════════════════ */
+    .sched-confirm { display: none; }
+    .sched-confirm.show { display: block; }
+
+    .conf-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+    }
+    .conf-row:last-child { border-bottom: none; }
+    .conf-k { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-faint); }
+    .conf-v { font-size: .88rem; font-weight: 600; color: var(--text-head); }
+
+    /* ═══════════════════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════════════════ */
+    @media (max-width: 660px) {
+      .topnav       { padding: 0 18px; }
+      .nav-steps    { display: none; }
+      .stage        { padding: 32px 12px 60px; }
+      .card         { padding: 24px 20px; }
+      .rtype-grid   { grid-template-columns: 1fr; }
+      .action-row   { grid-template-columns: 1fr; }
+      .date-pair    { grid-template-columns: 1fr; }
+      .dl-row       { grid-template-columns: 1fr; }
+      .result-meta  { flex-wrap: wrap; gap: 14px; }
+      .pg-h1        { font-size: 1.55rem; }
+    }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       TOP NAV
+       ══════════════════════════════════════════════════════════════ -->
+  <nav class="topnav" aria-label="Application navigation">
+    <div class="nav-brand">
+      <div class="nav-logobox" aria-hidden="true">📊</div>
+      <div>
+        <div class="nav-sub">Custom Report Generator</div>
+      </div>
+    </div>
+
+    <!-- Three-step progress pills (updated by JS) -->
+    <div class="nav-steps" aria-label="Progress">
+      <div class="nav-step is-active" id="np1">
+        <div class="nav-step-dot"></div>Select
+      </div>
+      <div class="nav-sep" aria-hidden="true"></div>
+      <div class="nav-step" id="np2">
+        <div class="nav-step-dot"></div>Configure
+      </div>
+      <div class="nav-sep" aria-hidden="true"></div>
+      <div class="nav-step" id="np3">
+        <div class="nav-step-dot"></div>Results
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       MAIN STAGE
+       ══════════════════════════════════════════════════════════════ -->
+  <main class="stage">
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 1 — SELECT REPORT TYPE
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen is-active" id="s1" aria-label="Select report type">
+
+      <div class="pg-head">
+        <div class="pg-eye">Step 1</div>
+        <h1 class="pg-h1">What would you like to report on?</h1>
+        <p class="pg-p">Choose a report type below. You can generate it instantly or set up a recurring schedule.</p>
+      </div>
+
+      <div class="card">
+
+        <!-- Three report-type cards -->
+        <div class="rtype-grid" role="radiogroup" aria-label="Report type">
+
+          <button class="rtype-card" id="rc-sales"
+            data-key="sales" data-lbl="Sales Report"
+            data-icon="💰"
+            role="radio" aria-checked="false" aria-label="Sales Report"
+            onclick="pickReport(this)">
+            <div class="rtype-tick" aria-hidden="true">✓</div>
+            <span class="rtype-icon" aria-hidden="true">💰</span>
+            <div class="rtype-name">Sales Report</div>
+            <div class="rtype-desc">Revenue, orders and category performance across regions.</div>
+          </button>
+
+          <button class="rtype-card" id="rc-user_activity"
+            data-key="user_activity" data-lbl="User Activity Report"
+            data-icon="👤"
+            role="radio" aria-checked="false" aria-label="User Activity Report"
+            onclick="pickReport(this)">
+            <div class="rtype-tick" aria-hidden="true">✓</div>
+            <span class="rtype-icon" aria-hidden="true">👤</span>
+            <div class="rtype-name">User Activity Report</div>
+            <div class="rtype-desc">Login events, exports and engagement by user or team.</div>
+          </button>
+
+          <button class="rtype-card" id="rc-inventory"
+            data-key="inventory" data-lbl="Inventory Report"
+            data-icon="📦"
+            role="radio" aria-checked="false" aria-label="Inventory Report"
+            onclick="pickReport(this)">
+            <div class="rtype-tick" aria-hidden="true">✓</div>
+            <span class="rtype-icon" aria-hidden="true">📦</span>
+            <div class="rtype-name">Inventory Report</div>
+            <div class="rtype-desc">Stock levels, categories and warehouse snapshot.</div>
+          </button>
+
+        </div>
+
+        <!-- Selection display / pseudo-dropdown -->
+        <div class="sel-display" id="sel-display" aria-live="polite">
+          <div>
+            <div class="sel-lbl">Selected Report</div>
+            <div class="sel-val" id="sel-val">No report selected yet</div>
+          </div>
+          <div class="sel-arr" aria-hidden="true">▾</div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+          <button class="btn btn-grad" id="btn-instant" disabled
+            onclick="gotoFilters()" aria-label="Generate instant report">
+            ⚡ Generate Instant Report
+          </button>
+          <button class="btn btn-ghost" id="btn-sched" disabled
+            onclick="gotoSchedule()" aria-label="Schedule a recurring report">
+            📅 Schedule Recurring Report
+          </button>
+        </div>
+
+      </div><!-- /card -->
+    </section><!-- /s1 -->
+
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 2 — FILTERS & GENERATE
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen" id="s2" aria-label="Configure report filters">
+
+      <div class="pg-head">
+        <div class="pg-eye">Step 2</div>
+        <h1 class="pg-h1">Configure your filters</h1>
+        <p class="pg-p">Narrow down the data. Fields marked <span style="color:#dc2626;font-weight:700">*</span> are required.</p>
+      </div>
+
+      <div class="card">
+
+        <button class="back-lnk" onclick="goTo(1)" aria-label="Back to report selection">← Back</button>
+
+        <!-- Context chip (report type label) -->
+        <div class="ctx-chip" id="f-chip"><span id="f-chip-ico">📊</span><span id="f-chip-lbl">—</span></div>
+
+        <!-- Validation error banner -->
+        <div class="alert alert-err" id="f-err" role="alert" aria-live="assertive">
+          <span class="alert-ico" aria-hidden="true">⚠️</span>
+          <div>
+            <div class="alert-ttl">Check your inputs</div>
+            <div class="alert-body" id="f-err-body">Please fill in all required fields.</div>
+          </div>
+        </div>
+
+        <!-- ── SALES FILTERS ── -->
+        <div id="fg-sales" class="filter-panel" style="display:none">
+          <div class="sec-title">Sales Report Filters</div>
+          <p class="sec-sub">Select a date range to scope the report. Category and region are optional refinements.</p>
+
+          <div class="date-pair fg">
+            <div>
+              <label class="lbl" for="s-start">Start Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="s-start" />
+            </div>
+            <div>
+              <label class="lbl" for="s-end">End Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="s-end" />
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="s-cat">Category</label>
+            <div class="sel-wrap">
+              <select class="sel" id="s-cat">
+                <option value="">— All categories —</option>
+                <option>Electronics</option>
+                <option>Clothing</option>
+                <option>Food &amp; Beverages</option>
+                <option>Stationery</option>
+                <option>Furniture</option>
+                <option>Health &amp; Beauty</option>
+                <option>Sports</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="s-region">Region</label>
+            <div class="sel-wrap">
+              <select class="sel" id="s-region">
+                <option value="">— All regions —</option>
+                <option>Western Province</option>
+                <option>Central Province</option>
+                <option>Southern Province</option>
+                <option>Northern Province</option>
+                <option>Eastern Province</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── USER ACTIVITY FILTERS ── -->
+        <div id="fg-user_activity" class="filter-panel" style="display:none">
+          <div class="sec-title">User Activity Report Filters</div>
+          <p class="sec-sub">Pick a date window. Optionally scope to a specific user or activity type.</p>
+
+          <div class="date-pair fg">
+            <div>
+              <label class="lbl" for="ua-start">Start Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="ua-start" />
+            </div>
+            <div>
+              <label class="lbl" for="ua-end">End Date<span class="req">*</span></label>
+              <input class="inp" type="date" id="ua-end" />
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="ua-user">User Name</label>
+            <input class="inp" type="text" id="ua-user"
+              placeholder="e.g. ashan.perera, nimali.silva…" />
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="ua-type">Activity Type</label>
+            <div class="sel-wrap">
+              <select class="sel" id="ua-type">
+                <option value="">— All activity types —</option>
+                <option>Login</option>
+                <option>Generate Report</option>
+                <option>Export PDF</option>
+                <option>Export Excel</option>
+                <option>View Report</option>
+                <option>Schedule Report</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── INVENTORY FILTERS ── -->
+        <div id="fg-inventory" class="filter-panel" style="display:none">
+          <div class="sec-title">Inventory Report Filters</div>
+          <p class="sec-sub">Optionally narrow by product category or warehouse location.</p>
+
+          <div class="fg">
+            <label class="lbl" for="inv-cat">Category</label>
+            <div class="sel-wrap">
+              <select class="sel" id="inv-cat">
+                <option value="">— All categories —</option>
+                <option>Electronics</option>
+                <option>Clothing</option>
+                <option>Food &amp; Beverages</option>
+                <option>Stationery</option>
+                <option>Furniture</option>
+                <option>Health &amp; Beauty</option>
+                <option>Sports</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="inv-wh">Warehouse Location</label>
+            <div class="sel-wrap">
+              <select class="sel" id="inv-wh">
+                <option value="">— All warehouses —</option>
+                <option>Colombo Central WH</option>
+                <option>Kandy Regional WH</option>
+                <option>Galle Southern WH</option>
+                <option>Jaffna Northern WH</option>
+                <option>Batticaloa Eastern WH</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <button class="btn btn-grad btn-full" id="btn-gen"
+          onclick="handleGenerate()" aria-label="Generate report now">
+          ⚡ Generate Report Now
+        </button>
+
+      </div><!-- /card -->
+    </section><!-- /s2 -->
+
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 3 — SCHEDULE RECURRING REPORT
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen" id="s3" aria-label="Schedule recurring report">
+
+      <div class="pg-head">
+        <div class="pg-eye">Schedule</div>
+        <h1 class="pg-h1">Set up a recurring report</h1>
+        <p class="pg-p">Choose how often you want this report delivered and where it should be sent.</p>
+      </div>
+
+      <div class="card">
+
+        <button class="back-lnk" onclick="goTo(1)" aria-label="Back to report selection">← Back</button>
+
+        <div class="ctx-chip" id="sc-chip"><span id="sc-chip-ico">📊</span><span id="sc-chip-lbl">—</span></div>
+
+        <!-- Validation error -->
+        <div class="alert alert-err" id="sc-err" role="alert" aria-live="assertive">
+          <span class="alert-ico" aria-hidden="true">⚠️</span>
+          <div>
+            <div class="alert-ttl">Missing information</div>
+            <div class="alert-body" id="sc-err-body">Please fill in all required fields.</div>
+          </div>
+        </div>
+
+        <!-- Schedule form -->
+        <div id="sc-form">
+          <div class="sec-title">Delivery Settings</div>
+          <p class="sec-sub">Reports are generated automatically and emailed to the recipient you specify.</p>
+
+          <div class="fg">
+            <label class="lbl" for="sc-freq">Frequency<span class="req">*</span></label>
+            <div class="sel-wrap">
+              <select class="sel" id="sc-freq">
+                <option value="">— Choose frequency —</option>
+                <option>Daily</option>
+                <option>Weekly</option>
+                <option>Monthly</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="sc-fmt">Export Format<span class="req">*</span></label>
+            <div class="sel-wrap">
+              <select class="sel" id="sc-fmt">
+                <option value="">— Choose format —</option>
+                <option value="PDF Document">PDF Document</option>
+                <option value="Excel Spreadsheet">Excel Spreadsheet</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="sc-email">Recipient Email<span class="req">*</span></label>
+            <input class="inp" type="email" id="sc-email"
+              placeholder="e.g. finance@company.lk" />
+          </div>
+
+          <div class="hr"></div>
+
+          <button class="btn btn-grad btn-full" onclick="handleSaveSchedule()"
+            aria-label="Save schedule">
+            💾 Save Schedule
+          </button>
+        </div>
+
+        <!-- Schedule saved confirmation (hidden until saved) -->
+        <div id="sc-done" class="sched-confirm">
+          <div class="alert alert-ok show" role="status">
+            <span class="alert-ico" aria-hidden="true">✅</span>
+            <div>
+              <div class="alert-ttl">Schedule saved!</div>
+              <div class="alert-body" id="sc-done-summary">Your report will be dispatched automatically.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:18px">
+            <div class="conf-row">
+              <span class="conf-k">Report</span>
+              <span class="conf-v" id="cd-report">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">Frequency</span>
+              <span class="conf-v" id="cd-freq">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">Format</span>
+              <span class="conf-v" id="cd-fmt">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">Recipient</span>
+              <span class="conf-v" id="cd-email">—</span>
+            </div>
+            <div class="conf-row">
+              <span class="conf-k">First Dispatch</span>
+              <span class="conf-v" id="cd-dispatch">—</span>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <button class="btn btn-ghost btn-full" onclick="goTo(1)">← Back to Home</button>
+        </div>
+
+      </div><!-- /card -->
+    </section><!-- /s3 -->
+
+
+    <!-- ──────────────────────────────────────────────────────────
+         SCREEN 4 — DOWNLOAD / RESULT
+         ────────────────────────────────────────────────────────── -->
+    <section class="screen" id="s4" aria-label="Report results">
+
+      <div class="pg-head">
+        <div class="pg-eye" id="r4-eye">Results</div>
+        <h1 class="pg-h1" id="r4-h1">Your report is ready</h1>
+        <p class="pg-p"  id="r4-p">Download it in your preferred format below.</p>
+      </div>
+
+      <div class="card">
+
+        <!-- SUCCESS STATE -->
+        <div id="r4-ok" style="display:none">
+          <div class="result-wrap">
+            <div class="result-circle ok" aria-hidden="true">✅</div>
+            <div class="result-h">Report generated!</div>
+            <p class="result-p">Your report is ready. Choose a format to download — both files contain the same data set.</p>
+
+            <div class="dl-row">
+              <button class="btn btn-dl-pdf" onclick="triggerDownload('pdf')"
+                aria-label="Download PDF document">
+                📄 Download PDF
+              </button>
+              <button class="btn btn-dl-xls" onclick="triggerDownload('excel')"
+                aria-label="Download Excel spreadsheet">
+                📊 Download Excel
+              </button>
+            </div>
+
+            <div class="result-meta">
+              <div><div class="meta-lbl">Report</div><div class="meta-val" id="r4-meta-type">—</div></div>
+              <div><div class="meta-lbl">Generated</div><div class="meta-val" id="r4-meta-time">—</div></div>
+              <div><div class="meta-lbl">Formats</div><div class="meta-val">PDF + Excel</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAILURE STATE -->
+        <div id="r4-err" style="display:none">
+          <div class="result-wrap">
+            <div class="result-circle err" aria-hidden="true">❌</div>
+            <div class="result-h">Report generation failed</div>
+            <p class="result-p">We couldn't reach the report server. Check that the Flask backend is running at <code>http://127.0.0.1:5000</code>, then adjust your filters and try again.</p>
+
+            <div class="alert alert-err show" id="r4-err-detail" style="text-align:left;max-width:460px;margin:0 auto">
+              <span class="alert-ico" aria-hidden="true">⚠️</span>
+              <div>
+                <div class="alert-ttl">Connection error</div>
+                <div class="alert-body" id="r4-err-msg">The server could not be reached.</div>
+              </div>
+            </div>
+
+            <div style="margin-top:24px">
+              <button class="btn btn-warn" onclick="gotoFilters()"
+                aria-label="Adjust filters and try again">
+                🔄 Adjust Filters &amp; Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /card -->
+    </section><!-- /s4 -->
+
+  </main><!-- /stage -->
+</div><!-- /#app -->
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+/* ──────────────────────────────────────────────────────────────────
+   APPLICATION STATE
+   All mutable values live here so they're easy to inspect and test.
+────────────────────────────────────────────────────────────────── */
+const State = {
+  reportKey:   null,   // 'sales' | 'user_activity' | 'inventory'
+  reportLabel: null,   // Human-readable label
+  reportIcon:  null,   // Emoji icon
+  lastBlob:    null,   // Blob returned from the Flask API
+  lastBlobType:null,   // Content-Type from the API response
+};
+
+/* ──────────────────────────────────────────────────────────────────
+   SEED DATA CONSTANTS
+   Mirrors the database seed provided in the brief.
+   Used to populate dropdowns and validate inputs.
+────────────────────────────────────────────────────────────────── */
+const SEED = {
+  categories:  ['Electronics','Clothing','Food & Beverages','Stationery','Furniture','Health & Beauty','Sports'],
+  regions:     ['Western Province','Central Province','Southern Province','Northern Province','Eastern Province'],
+  warehouses:  ['Colombo Central WH','Kandy Regional WH','Galle Southern WH','Jaffna Northern WH','Batticaloa Eastern WH'],
+  activityTypes: ['Login','Generate Report','Export PDF','Export Excel','View Report','Schedule Report'],
+};
+
+/* ──────────────────────────────────────────────────────────────────
+   SCREEN NAVIGATION
+   Single source of truth for all screen transitions.
+   Also syncs the top-nav step pills.
+────────────────────────────────────────────────────────────────── */
+
+/**
+ * Navigate to the given screen number (1–4).
+ * @param {1|2|3|4} n
+ */
+function goTo(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('is-active'));
+  const target = document.getElementById('s' + n);
+  if (target) {
+    target.classList.add('is-active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Sync nav step pills
+  // Step 1 pill = screen 1
+  // Step 2 pill = screen 2 or 3
+  // Step 3 pill = screen 4
+  const pills = ['np1','np2','np3'];
+  const activeIndex = n === 1 ? 0 : (n === 4 ? 2 : 1);
+  pills.forEach((id, i) => {
+    document.getElementById(id).classList.toggle('is-active', i === activeIndex);
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   SCREEN 1 — REPORT CARD SELECTION
+────────────────────────────────────────────────────────────────── */
+
+/**
+ * Handle a click on one of the three report type cards.
+ * Updates State, highlights the card, refreshes the selection display,
+ * and enables the action buttons.
+ * @param {HTMLButtonElement} card
+ */
+function pickReport(card) {
+  // Deselect all cards
+  document.querySelectorAll('.rtype-card').forEach(c => {
+    c.classList.remove('is-selected');
+    c.setAttribute('aria-checked', 'false');
+  });
+
+  // Select this card
+  card.classList.add('is-selected');
+  card.setAttribute('aria-checked', 'true');
+
+  // Save to state
+  State.reportKey   = card.dataset.key;
+  State.reportLabel = card.dataset.lbl;
+  State.reportIcon  = card.dataset.icon;
+
+  // Update selection display
+  const display = document.getElementById('sel-display');
+  document.getElementById('sel-val').textContent = State.reportLabel;
+  display.classList.add('has-val');
+
+  // Enable action buttons
+  document.getElementById('btn-instant').disabled = false;
+  document.getElementById('btn-sched').disabled   = false;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   SCREEN 2 — FILTERS
+────────────────────────────────────────────────────────────────── */
+
+/**
+ * Navigate to Screen 2.
+ * Populates the context chip and reveals the correct filter panel.
+ */
+function gotoFilters() {
+  if (!State.reportKey) return;
+
+  // Set context chip
+  document.getElementById('f-chip-ico').textContent = State.reportIcon;
+  document.getElementById('f-chip-lbl').textContent = State.reportLabel;
+
+  // Hide all filter panels
+  document.querySelectorAll('.filter-panel').forEach(p => { p.style.display = 'none'; });
+
+  // Show the relevant panel
+  const panel = document.getElementById('fg-' + State.reportKey);
+  if (panel) panel.style.display = 'block';
+
+  // Clear any previous error
+  hideAlert('f-err');
+
+  // Restore generate button
+  resetGenBtn();
+
+  goTo(2);
+}
+
+/**
+ * Collect filter values into the exact payload shape the Flask API expects.
+ * @returns {{ reportType: string, filters: Object }}
+ */
+function collectPayload() {
+  const key = State.reportKey;
+  const filters = {
+    start:     '',
+    end:       '',
+    category:  '',
+    region:    '',
+    username:  '',
+    type:      '',
+    warehouse: '',
+  };
+
+  if (key === 'sales') {
+    filters.start    = v('s-start');
+    filters.end      = v('s-end');
+    filters.category = v('s-cat');
+    filters.region   = v('s-region');
+  }
+
+  if (key === 'user_activity') {
+    filters.start    = v('ua-start');
+    filters.end      = v('ua-end');
+    filters.username = v('ua-user');
+    filters.type     = v('ua-type');
+  }
+
+  if (key === 'inventory') {
+    filters.category  = v('inv-cat');
+    filters.warehouse = v('inv-wh');
+  }
+
+  return { reportType: key, filters };
+}
+
+/**
+ * Validate the payload.
+ * Sales and User Activity require start+end dates.
+ * Inventory has no required fields.
+ * @param {{ reportType: string, filters: Object }} payload
+ * @returns {{ ok: boolean, msg: string }}
+ */
+function validate(payload) {
+  const { reportType, filters } = payload;
+
+  if (reportType === 'sales' || reportType === 'user_activity') {
+    if (!filters.start && !filters.end) {
+      return { ok: false, msg: 'A start date and end date are required for this report type.' };
+    }
+    if (!filters.start) {
+      return { ok: false, msg: 'Please enter a start date.' };
+    }
+    if (!filters.end) {
+      return { ok: false, msg: 'Please enter an end date.' };
+    }
+    if (new Date(filters.start) > new Date(filters.end)) {
+      return { ok: false, msg: 'The start date must be before the end date.' };
+    }
+  }
+
+  return { ok: true, msg: '' };
+}
+
+/**
+ * Main handler for the "Generate Report Now" button.
+ */
+async function handleGenerate() {
+  const payload = collectPayload();
+  const check   = validate(payload);
+
+  if (!check.ok) {
+    showAlert('f-err', 'f-err-body', check.msg);
+    return;
+  }
+
+  hideAlert('f-err');
+  setGenBtnLoading(true);
+
+  await callAPI(payload);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   API CALL — Fetch with Blob response handling
+────────────────────────────────────────────────────────────────── */
+
+
+async function callAPI(payload) {
+  const URL = 'http://127.0.0.1:5000/api/generate';
+
+  try {
+    const res = await fetch(URL, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        
+        'Accept': 'application/pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    // Non-2xx: try to read the error body
+    if (!res.ok) {
+      let errMsg = 'The server returned HTTP ' + res.status + ' — ' + res.statusText + '.';
+      try {
+        const j = await res.json();
+        if (j && j.message) errMsg = j.message;
+      } catch (_) {
+        // Not JSON — use status text
+      }
+      throw new Error(errMsg);
+    }
+
+    // Success — read body as Blob for file download
+    const contentType = res.headers.get('Content-Type') || 'application/octet-stream';
+    const blob        = await res.blob();
+
+    // Persist to State so download buttons can reference it
+    State.lastBlob     = blob;
+    State.lastBlobType = contentType;
+
+    // Populate Screen 4 success metadata
+    document.getElementById('r4-meta-type').textContent = State.reportLabel;
+    document.getElementById('r4-meta-time').textContent = new Date().toLocaleTimeString();
+
+    // Show success, hide failure
+    document.getElementById('r4-ok').style.display  = 'block';
+    document.getElementById('r4-err').style.display = 'none';
+
+    document.getElementById('r4-eye').textContent = 'Success';
+    document.getElementById('r4-h1').textContent  = 'Your report is ready';
+    document.getElementById('r4-p').textContent   = 'Download it in your preferred format below.';
+
+    goTo(4);
+
+  } catch (err) {
+    // Network error (server offline) or re-thrown HTTP error
+    console.error('[ReportGen] API error:', err);
+
+    document.getElementById('r4-err-msg').textContent =
+      err.message || 'An unexpected error occurred. Please try again.';
+
+    document.getElementById('r4-ok').style.display  = 'none';
+    document.getElementById('r4-err').style.display = 'block';
+
+    document.getElementById('r4-eye').textContent = 'Error';
+    document.getElementById('r4-h1').textContent  = 'Generation failed';
+    document.getElementById('r4-p').textContent   = 'We couldn\'t connect to the report server.';
+
+    goTo(4);
+
+  } finally {
+    setGenBtnLoading(false);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   SCREEN 4 — BLOB DOWNLOAD
+────────────────────────────────────────────────────────────────── */
+
+function triggerDownload(fmt) {
+  if (!State.lastBlob) { alert('No report available. Please generate one first.'); return; }
+
+  const isPdf = fmt === 'pdf';
+  const mime  = isPdf
+    ? 'application/pdf'
+    : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const ext   = isPdf ? 'pdf' : 'xlsx';
+
+  const date     = new Date().toISOString().slice(0, 10);
+  const safeName = (State.reportKey || 'report').replace(/[^a-z0-9_]/gi, '_');
+  const fileName = safeName + '_' + date + '.' + ext;
+
+  // Re-wrap with the correct MIME type in case the server returned a generic one
+  const blob = new Blob([State.lastBlob], { type: mime });
+  const url  = window.URL.createObjectURL(blob);
+
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+
+  // Clean up
+  setTimeout(() => {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 300);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   SCREEN 3 — SCHEDULE
+────────────────────────────────────────────────────────────────── */
+
+
+function gotoSchedule() {
+  if (!State.reportKey) return;
+
+  // Context chip
+  document.getElementById('sc-chip-ico').textContent = State.reportIcon;
+  document.getElementById('sc-chip-lbl').textContent = State.reportLabel;
+
+  // Reset form visibility
+  document.getElementById('sc-form').style.display = 'block';
+  document.getElementById('sc-done').classList.remove('show');
+
+  // Clear fields
+  document.getElementById('sc-freq').value  = '';
+  document.getElementById('sc-fmt').value   = '';
+  document.getElementById('sc-email').value = '';
+
+  hideAlert('sc-err');
+  goTo(3);
+}
+
+
+function handleSaveSchedule() {
+  const freq  = v('sc-freq');
+  const fmt   = v('sc-fmt');
+  const email = v('sc-email');
+
+  // Validate: all fields required
+  if (!freq)  { showAlert('sc-err', 'sc-err-body', 'Please choose a delivery frequency.'); return; }
+  if (!fmt)   { showAlert('sc-err', 'sc-err-body', 'Please choose an export format.');      return; }
+  if (!email) { showAlert('sc-err', 'sc-err-body', 'A recipient email address is required.'); return; }
+
+  // Email regex (RFC 5322-compatible subset)
+  const emailRx = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRx.test(email)) {
+    showAlert('sc-err', 'sc-err-body', '"' + email + '" is not a valid email address. Please check and try again.');
+    return;
+  }
+
+  hideAlert('sc-err');
+
+  // Calculate first dispatch date
+  const now  = new Date();
+  let dispatch = '';
+
+  if (freq === 'Daily') {
+    const d = new Date(now); d.setDate(d.getDate() + 1);
+    dispatch = 'Tomorrow, ' + d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  } else if (freq === 'Weekly') {
+    const d = new Date(now);
+    const daysToMon = (8 - d.getDay()) % 7 || 7;
+    d.setDate(d.getDate() + daysToMon);
+    dispatch = 'Next Monday, ' + d.toLocaleDateString('en-US', { month:'long', day:'numeric' });
+  } else if (freq === 'Monthly') {
+    const d = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    dispatch = '1 ' + d.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  }
+
+  // Populate confirmation rows
+  document.getElementById('cd-report').textContent   = State.reportLabel;
+  document.getElementById('cd-freq').textContent     = freq;
+  document.getElementById('cd-fmt').textContent      = fmt;
+  document.getElementById('cd-email').textContent    = email;
+  document.getElementById('cd-dispatch').textContent = dispatch;
+
+  document.getElementById('sc-done-summary').textContent =
+    'First ' + fmt + ' will be sent to ' + email + ' on ' + dispatch.toLowerCase() + '.';
+
+  // Swap form → confirmation
+  document.getElementById('sc-form').style.display = 'none';
+  document.getElementById('sc-done').classList.add('show');
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   UI HELPERS
+────────────────────────────────────────────────────────────────── */
+
+/** Read trimmed value of a form field by ID. */
+function v(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+
+function showAlert(bannerId, bodyId, msg) {
+  const banner = document.getElementById(bannerId);
+  const body   = document.getElementById(bodyId);
+  if (body)   body.textContent = msg;
+  if (banner) {
+    banner.classList.add('show');
+    banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+
+function hideAlert(bannerId) {
+  const el = document.getElementById(bannerId);
+  if (el) el.classList.remove('show');
+}
+
+
+function setGenBtnLoading(loading) {
+  const btn = document.getElementById('btn-gen');
+  if (!btn) return;
+  if (loading) {
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="btn-spin" aria-hidden="true"></span> Generating report…';
+  } else {
+    resetGenBtn();
+  }
+}
+
+/** Restore the generate button to its default label and enabled state. */
+function resetGenBtn() {
+  const btn = document.getElementById('btn-gen');
+  if (!btn) return;
+  btn.disabled  = false;
+  btn.innerHTML = '⚡ Generate Report Now';
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   INITIALISATION
+────────────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  goTo(1);
+});
+</script>
+</body>
+</html>
