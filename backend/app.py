@@ -1,11 +1,3 @@
-<<<<<<< Updated upstream
-import os
-import sys
-
-root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
-=======
 """
 backend/app.py
 ==============
@@ -21,7 +13,15 @@ Or via Flask CLI:
 Public helper available for Group 3 / Group 4 direct import:
     from backend.app import generate_report
 """
->>>>>>> Stashed changes
+
+import os
+import sys
+
+# Ensure the project root is on sys.path so 'backend.*' imports work
+# whether the file is run directly or as a module.
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
 
 from flask import Flask
 from flask_cors import CORS
@@ -68,7 +68,6 @@ def generate_report(report_type: str, filters: dict | None = None,
     >>> with open("sales_june.pdf", "wb") as f:
     ...     f.write(buf.read())
     """
-    import pandas as pd
     from backend.models import (
         get_sales_data,      get_sales_summary,
         get_activity_data,   get_activity_summary,
