@@ -123,7 +123,7 @@ def create_app() -> Flask:
     app.register_blueprint(report_bp)
 
     # Initialise and start the background scheduler
-    from backend.scheduler.scheduler_manager import init_scheduler, start_scheduler, shutdown_scheduler
+    from backend.scheduler.scheduler_setup import init_scheduler, start_scheduler, shutdown_scheduler
     import atexit
     init_scheduler(app)
     start_scheduler()
