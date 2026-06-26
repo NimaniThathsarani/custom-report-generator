@@ -33,7 +33,6 @@ The Custom Report Generator allows stakeholders to generate business reports wit
 | Excel Reports | OpenPyXL |
 | Data Processing | Pandas |
 | Scheduling | APScheduler |
-| Design | Figma |
 | Documentation | Google Docs |
 | Version Control | GitHub |
 
