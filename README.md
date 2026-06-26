@@ -1,21 +1,20 @@
 # Custom Report Generator
 
-A web-based application that enables stakeholders to generate customized business reports on demand, apply filters, download PDF or Excel files, and schedule recurring reports for automatic email delivery.
+A web-based application that enables stakeholders to generate customized business reports on demand, apply filters, download PDF or Excel files, and schedule recurring reports.
 
-# Project Overview
+## Project Overview
 
-The Custom Report Generator is built as part of an academic group project. It allows non-technical stakeholders to generate business reports without requiring developer assistance. Users can select a report type, apply relevant filters, download the result in PDF or Excel format, and set up recurring schedules to receive reports automatically by email.
+The Custom Report Generator allows stakeholders to generate business reports without requiring developer assistance. Users can select a report type, apply relevant filters, download the result in PDF or Excel format, and set up recurring schedules to receive reports automatically.
 
-
-# Features
+## Features
 
 - Generate reports on demand
 - Apply dynamic filters by report type
 - Download reports as PDF or Excel
 - Schedule recurring reports (Daily / Weekly / Monthly)
-- Automatic email delivery of scheduled reports
+- Automatic scheduled reports
 
-##  Report Types
+## Report Types
 
 | Report | Filters Available |
 |---|---|
@@ -23,7 +22,6 @@ The Custom Report Generator is built as part of an academic group project. It al
 | User Activity Report | Date Range, User Name, Activity Type |
 | Inventory Report | Product Category, Warehouse Location |
 
----
 ## Tech Stack
 
 | Layer | Technology |
@@ -39,7 +37,6 @@ The Custom Report Generator is built as part of an academic group project. It al
 | Documentation | Google Docs |
 | Version Control | GitHub |
 
----
 ## Folder Structure
 
 ```
@@ -71,8 +68,6 @@ custom-report-generator/
 │   └── user_guide.md           # End-user instructions
 └── tests/
 ```
-
----
 
 ## Setup Instructions
 
@@ -107,8 +102,6 @@ custom-report-generator/
    ```
 6. Open `frontend/index.html` in your browser (or serve it via Flask's static folder).
 
----
-
 ## Team & Group Ownership
 
 | Group   | Focus Area                    | Folder(s) Owned                                                              |
@@ -119,6 +112,5 @@ custom-report-generator/
 | Group 4 | Scheduling & Automation       | `backend/scheduler/`                                                         |
 | Group 5 | Documentation & Testing       | `docs/user_guide.md`, `docs/report_specifications.md`, `tests/`              |
 
----
 
 
