@@ -13,6 +13,7 @@ Environment variables (set in .env or system):
 """
 
 import os
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.engine import Connection
@@ -23,6 +24,17 @@ load_dotenv()
 _engine: Engine | None = None
 
 
+# def _get_db_url() -> str:
+#     """Constructs the standard SQLAlchemy connection URI string."""
+#     host = os.getenv("DB_HOST", "localhost")
+#     port = os.getenv("DB_PORT", "3306")
+#     user = os.getenv("DB_USER", "root")
+#     password = os.getenv("DB_PASSWORD", "")
+#     database = os.getenv("DB_NAME", "report_generator")
+
+#     # Using mysql+mysqlconnector to match your current underlying package
+#     return f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"
+
 def _get_db_url() -> str:
     """Constructs the standard SQLAlchemy connection URI string."""
     host = os.getenv("DB_HOST", "localhost")
@@ -31,7 +43,10 @@ def _get_db_url() -> str:
     password = os.getenv("DB_PASSWORD", "")
     database = os.getenv("DB_NAME", "report_generator")
 
-    # Using mysql+mysqlconnector to match your current underlying package
+    # Encode special characters in username/password, e.g. @, #, %, :
+    user = quote_plus(user)
+    password = quote_plus(password)
+
     return f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"
 
 

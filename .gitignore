@@ -9,3 +9,7 @@ __pycache__/
 
 # Environment variables
 .env
+
+# Generated scheduler/report output files
+backend/generated_reports/
+
