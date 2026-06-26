@@ -1,15 +1,13 @@
-#Custom Report Generator
-
+# Custom Report Generator
 
 A web-based application that enables stakeholders to generate customized business reports on demand, apply filters, download PDF or Excel files, and schedule recurring reports for automatic email delivery.
 
-#Project Overview
+# Project Overview
 
 The Custom Report Generator is built as part of an academic group project. It allows non-technical stakeholders to generate business reports without requiring developer assistance. Users can select a report type, apply relevant filters, download the result in PDF or Excel format, and set up recurring schedules to receive reports automatically by email.
 
 
-#Features
-
+# Features
 
 - Generate reports on demand
 - Apply dynamic filters by report type
@@ -17,17 +15,31 @@ The Custom Report Generator is built as part of an academic group project. It al
 - Schedule recurring reports (Daily / Weekly / Monthly)
 - Automatic email delivery of scheduled reports
 
+##  Report Types
 
+| Report | Filters Available |
+|---|---|
+| Sales Report | Date Range, Product Category, Region |
+| User Activity Report | Date Range, User Name, Activity Type |
+| Inventory Report | Product Category, Warehouse Location |
 
-# Report Types
+---
+## Tech Stack
 
-ReportFilters AvailableSales ReportDate Range, Product Category, RegionUser Activity ReportDate Range, User Name, Activity TypeInventory ReportProduct Category, Warehouse Location
+| Layer | Technology |
+|---|---|
+| Frontend | HTML, CSS, JavaScript |
+| Backend | Python (Flask) |
+| Database | MySQL |
+| PDF Reports | ReportLab |
+| Excel Reports | OpenPyXL |
+| Data Processing | Pandas |
+| Scheduling | APScheduler |
+| Design | Figma |
+| Documentation | Google Docs |
+| Version Control | GitHub |
 
-
-# Tech Stack
-
-LayerTechnologyFrontendHTML, CSS, JavaScriptBackendPython (Flask)DatabaseMySQLPDF ReportsReportLabExcel ReportsOpenPyXLData ProcessingPandasSchedulingAPSchedulerDesignFigmaDocumentationGoogle DocsVersion ControlGitHub
-
+---
 ## Folder Structure
 
 ```
@@ -109,12 +121,4 @@ custom-report-generator/
 
 ---
 
-## Branch & PR Workflow
-
-- Each group works on its own branch:
-  - `group1-requirements`
-  - `group2-backend`, `group2-templates`
-  - `group3-ui`
-  - `group4-scheduler`
-  - `group5-docs`
 
