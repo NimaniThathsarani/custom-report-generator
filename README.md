@@ -44,10 +44,11 @@ custom-report-generator/
 │   ├── routes/                 # API endpoints
 │   ├── templates_engine/       # OpenPyXL + ReportLab report builders
 │   └── scheduler/              # APScheduler scheduling and automation
-│       ├── scheduler_manager.py
-│       ├── scheduler_setup.py
-│       ├── utils.py
-│       └── jobs.py             
+│       ├── scheduler_manager.py 
+│       ├── scheduler_setup.py   
+│       ├── utils.py             
+│       ├── jobs.py              
+│       └── test_jobs.py                  
 ├── frontend/
 │   ├── index.html
 │   ├── css/
@@ -108,19 +109,21 @@ custom-report-generator/
 ### Scheduler Files:
 ```
 backend/scheduler/
-├── scheduler_manager.py   # Scheduler lifecycle management
-├── scheduler_setup.py     # Scheduler initialization and job registration
-├── utils.py               # Folder creation, filenames, and heartbeat test job
-└── jobs.py                # Scheduled report execution logic
+├── scheduler_manager.py # Scheduler lifecycle management
+├── scheduler_setup.py   # Scheduler initialization and job registration
+├── utils.py             # Folder creation, filenames, heartbeat test job
+├── jobs.py              # Scheduled report execution logic
+└── test_jobs.py         # Scheduler tests 
 ```
 
  ### Main Functions
  The scheduler module includes:
-  - ensure_reports_directory() - creates `backend/generated_reports/` if it does not exist.
-  - generate_report_filename(report_type, export_format) - creates clean timestamped filenames.
-  - heartbeat_job() - runs a lightweight test job every 30 seconds to verify scheduler activity.
-  - execute_scheduled_report() - runs the real scheduled report generation logic.
-  - parse_schedule_trigger() - converts schedule settings into APScheduler trigger settings.
+  - `ensure_reports_directory()` - creates `backend/generated_reports/` if it does not exist.
+  - `generate_report_filename(report_type, export_format)` - creates clean timestamped filenames.
+  - `heartbeat_job()` - runs a lightweight test job every 30 seconds to verify scheduler activity.
+  - `execute_scheduled_report()` - runs the real scheduled report generation logic.
+  - `parse_schedule_trigger()` - converts schedule settings into APScheduler trigger settings.
+  - `register_scheduled_report()` - registers a recurring report job with the scheduler.
 
 ### Local Scheduler Test
 Run this command from the project root:
