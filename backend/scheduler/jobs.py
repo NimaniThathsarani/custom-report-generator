@@ -138,6 +138,8 @@ def execute_scheduled_report(report_type: str,
     )
 
     # ── 3. Call Group 2's report generator ────────────────────────────────────
+    if filters is None:
+        filters = {}
     try:
         stream = _call_group2_generator(report_type, filters, export_format)
     except Exception as exc:
