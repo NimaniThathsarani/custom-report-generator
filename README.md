@@ -1,35 +1,32 @@
-# Custom Report Generator
+#Custom Report Generator
 
-**Enable stakeholders to generate reports on demand.**
 
-Instead of manually pulling data and building a report every time someone asks for one, stakeholders can log in, pick a report type, set filters (like a date range), click **Generate**, and get their report instantly — or have it delivered automatically on a recurring schedule.
+A web-based application that enables stakeholders to generate customized business reports on demand, apply filters, download PDF or Excel files, and schedule recurring reports for automatic email delivery.
 
----
+#Project Overview
 
-## Tech Stack
+The Custom Report Generator is built as part of an academic group project. It allows non-technical stakeholders to generate business reports without requiring developer assistance. Users can select a report type, apply relevant filters, download the result in PDF or Excel format, and set up recurring schedules to receive reports automatically by email.
 
-| Layer                          | Technology              |
-| ------------------------------ | ----------------------- |
-| Frontend                       | HTML / CSS / JavaScript |
-| Backend                        | Flask (Python)          |
-| Database                       | MySQL                   |
-| Data Processing                | Pandas                  |
-| Excel Report Output            | OpenPyXL                |
-| PDF Report Output              | ReportLab               |
-| Scheduling (Recurring Reports) | APScheduler             |
-| Version Control                | GitHub                  |
 
----
+#Features
 
-## Features
 
-- Multiple report types with adjustable filters/parameters (date range, category, region, etc.)
-- Simple, non-technical interface for selecting a report and generating it
-- Reports exportable as Excel and PDF
-- Recurring/scheduled report generation
-- Full user and technical documentation
+- Generate reports on demand
+- Apply dynamic filters by report type
+- Download reports as PDF or Excel
+- Schedule recurring reports (Daily / Weekly / Monthly)
+- Automatic email delivery of scheduled reports
 
----
+
+
+# Report Types
+
+ReportFilters AvailableSales ReportDate Range, Product Category, RegionUser Activity ReportDate Range, User Name, Activity TypeInventory ReportProduct Category, Warehouse Location
+
+
+# Tech Stack
+
+LayerTechnologyFrontendHTML, CSS, JavaScriptBackendPython (Flask)DatabaseMySQLPDF ReportsReportLabExcel ReportsOpenPyXLData ProcessingPandasSchedulingAPSchedulerDesignFigmaDocumentationGoogle DocsVersion ControlGitHub
 
 ## Folder Structure
 
@@ -69,7 +66,7 @@ custom-report-generator/
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/<org>/custom-report-generator.git
+   git clone https://github.com/NimaniThathsarani/custom-report-generator.git
    cd custom-report-generator
    ```
 2. Create a virtual environment and install dependencies:
@@ -100,91 +97,6 @@ custom-report-generator/
 
 ---
 
-## Scheduler & Automation Module - Group 4
-
-- The scheduling and automation feature is handled inside `backend/scheduler/`. 
-- It uses APScheduler to run background jobs while the Flask app is running.
-- This module supports recurring report generation such as daily, weekly, and monthly reports.
-
-### Scheduler Files:
-```
-backend/scheduler/
-├── scheduler_manager.py # Scheduler lifecycle management
-├── scheduler_setup.py   # Scheduler initialization and job registration
-├── utils.py             # Folder creation, filenames, heartbeat test job
-├── jobs.py              # Scheduled report execution logic
-└── test_jobs.py         # Scheduler tests 
-```
-
- ### Main Functions
- The scheduler module includes:
-  - `ensure_reports_directory()` - creates `backend/generated_reports/` if it does not exist.
-  - `generate_report_filename(report_type, export_format)` - creates clean timestamped filenames.
-  - `heartbeat_job()` - runs a lightweight test job every 30 seconds to verify scheduler activity.
-  - `execute_scheduled_report()` - runs the real scheduled report generation logic.
-  - `parse_schedule_trigger()` - converts schedule settings into APScheduler trigger settings.
-  - `register_scheduled_report()` - registers a recurring report job with the scheduler.
-
-### Local Scheduler Test
-Run this command from the project root:
-```bash
-python backend/scheduler/utils.py
-```
-Expected terminal output:
-```
-[SCHEDULER HEARTBEAT] Job fired successfully at ...
-[SCHEDULER HEARTBEAT] Test file created: backend/generated_reports/...
-```
-
-A heartbeat .txt file should be created inside:
-`backend/generated_reports/`
-
-This confirms that the scheduler utility can create the output folder, generate timestamped filenames, create a test file, and print logs correctly in the terminal.
-
-### Adding a New Schedule
-New recurring jobs can be added using APScheduler's add_job() method.
-
-Example weekly schedule:
-```text
-scheduler.add_job(
-    execute_scheduled_report,
-    trigger='cron',
-    day_of_week='mon',
-    hour=8,
-    minute=0,
-    id='weekly_sales_report',
-    replace_existing=True
-)
-```
-
-### Scheduled Report Flow
-```
-Scheduler starts
-        ↓
-Scheduled job fires
-        ↓
-execute_scheduled_report() runs
-        ↓
-Report generation function is called
-        ↓
-Output folder is checked or created
-        ↓
-Clean timestamped filename is generated
-        ↓
-PDF or Excel report is saved into backend/generated_reports/
-```
-
-### Generated Reports
-Generated report files are saved in:
-`backend/generated_reports/`
-
-This folder should be ignored in Git using:
-```gitignore
-backend/generated_reports/
-```
-
----
-
 ## Team & Group Ownership
 
 | Group   | Focus Area                    | Folder(s) Owned                                                              |
@@ -199,12 +111,10 @@ backend/generated_reports/
 
 ## Branch & PR Workflow
 
-- `main` always stays stable and working — never commit directly to it.
 - Each group works on its own branch:
   - `group1-requirements`
   - `group2-backend`, `group2-templates`
   - `group3-ui`
   - `group4-scheduler`
   - `group5-docs`
-- Open a Pull Request into `main` when a piece of work is ready.
-- Commit early and often — small commits are easier to review and merge than one giant commit at the end.
+
